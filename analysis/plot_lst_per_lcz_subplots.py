@@ -68,6 +68,17 @@ fig, axes = plt.subplots(nrows, ncols, figsize=(16, 3.5 * nrows))
 axes = axes.flatten()
 
 pct_fmt = FuncFormatter(lambda x, _: f"{x:.1f}%")
+
+def human_n(n):
+    if n >= 1e12:
+        return f"~{n/1e12:.1f}T"
+    elif n >= 1e9:
+        return f"~{n/1e9:.1f}B"
+    elif n >= 1e6:
+        return f"~{n/1e6:.1f}M"
+    elif n >= 1e3:
+        return f"~{n/1e3:.1f}K"
+    return str(n)
 x_ticks = np.arange(0, 151, 25)
 
 for i, c in enumerate(present_classes):
@@ -85,7 +96,7 @@ for i, c in enumerate(present_classes):
     ax.axvline(s['mean'], color='red', linestyle='--', linewidth=0.8, label=f"Mean: {s['mean']:.1f}F")
     ax.legend(fontsize=11, loc='upper left')
     ax.grid(axis='y', alpha=0.3)
-    info = f"n={s['total']:,}\nstd={s['std']:.1f}F"
+    info = f"n={human_n(s['total'])}\nstd={s['std']:.1f}F"
     ax.text(0.97, 0.95, info, transform=ax.transAxes, fontsize=11,
             verticalalignment='top', horizontalalignment='right',
             bbox=dict(boxstyle='round,pad=0.3', facecolor='wheat', alpha=0.5))
