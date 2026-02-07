@@ -64,7 +64,7 @@ for c in present_classes:
 # Plot
 ncols = 4
 nrows = (len(present_classes) + ncols - 1) // ncols
-fig, axes = plt.subplots(nrows, ncols, figsize=(16, 3.5 * nrows), sharey=True)
+fig, axes = plt.subplots(nrows, ncols, figsize=(16, 3.5 * nrows))
 axes = axes.flatten()
 
 pct_fmt = FuncFormatter(lambda x, _: f"{x:.1f}%")
@@ -77,7 +77,8 @@ for i, c in enumerate(present_classes):
     ax.bar(bin_centers, pct, width=BIN_WIDTH, color='steelblue', edgecolor='none')
     ax.set_title(f"LCZ {c}: {LCZ_LABELS.get(c, '?')}", fontsize=10)
     ax.set_xlim(0, 150)
-    ax.set_ylim(0, 2.0)
+    ax.set_ylim(0, 5.0)
+    ax.set_yticks([0, 1, 2, 3, 4, 5])
     ax.set_xticks(x_ticks)
     ax.set_xticklabels([f"{int(t)}" for t in x_ticks], fontsize=8)
     ax.yaxis.set_major_formatter(pct_fmt)
