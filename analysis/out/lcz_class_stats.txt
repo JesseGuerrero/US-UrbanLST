@@ -1,0 +1,30 @@
+LCZ Class Distribution Statistics
+============================================================
+
+Image dimensions: 45,096 x 18,379
+Total pixels (excluding class 0): 3,978,683
+
+Dominant class: 6 (Open low-rise)
+
+Class Ranking by Area Coverage:
+------------------------------------------------------------
+Rank  Class       Count    Percentage  Description
+------------------------------------------------------------
+1     6             2,304,386    57.9183%  Open low-rise
+2     14              435,041    10.9343%  Low plants
+3     11              286,834     7.2093%  Dense trees
+4     16              198,951     5.0004%  Bare soil
+5     13              183,003     4.5996%  Bush, scrub
+6     8               135,060     3.3946%  Large low-rise
+7     17              128,621     3.2328%  Water
+8     12              128,592     3.2320%  Scattered trees
+9     15               77,947     1.9591%  Bare rock
+10    18               56,554     1.4214%  Custom/Unknown
+11    2                17,578     0.4418%  Compact mid-rise
+12    3                10,448     0.2626%  Compact low-rise
+13    10                6,202     0.1559%  Heavy industry
+14    4                 4,514     0.1135%  Open high-rise
+15    5                 2,839     0.0714%  Open mid-rise
+16    1                 2,113     0.0531%  Compact high-rise
+
+============================================================

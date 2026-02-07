@@ -1,0 +1,26 @@
+LST Distribution per LCZ Class
+======================================================================
+
+Total LST files processed: 1,811,272
+LCZ classes with data: 16
+
+Class   Description                       Pixels      Mean       Std    Median     Min     Max
+----------------------------------------------------------------------------------------------
+LCZ 1   Compact high-rise              8,639,972     75.89     26.96        79    -189     148
+LCZ 2   Compact mid-rise              77,403,212     77.34     26.79        81    -189     175
+LCZ 3   Compact low-rise              47,478,288     78.88     29.14        83    -189     151
+LCZ 4   Open high-rise                20,344,389     82.40     28.95        85    -189     164
+LCZ 5   Open mid-rise                 16,910,931     89.08     28.14        91    -189     161
+LCZ 6   Open low-rise             11,185,948,355     82.78     28.56        85    -189     192
+LCZ 8   Large low-rise               737,551,075     94.14     27.95        98    -189     187
+LCZ 10  Heavy industry                28,123,635     82.89     31.39        85    -189     164
+LCZ 11  Dense trees                1,234,477,681     67.21     25.56        71    -189     211
+LCZ 12  Scattered trees              583,568,105     73.39     27.82        77    -189     211
+LCZ 13  Bush, scrub                1,302,142,502    100.87     27.01       103    -189     179
+LCZ 14  Low plants                 2,372,490,276     82.20     29.32        84    -189     211
+LCZ 15  Bare rock                    501,687,608     97.59     26.48       100    -189     177
+LCZ 16  Bare soil                  1,654,509,721    103.50     27.53       108    -189     181
+LCZ 17  Water                        514,340,946     65.40     25.38        68    -189     169
+LCZ 18  Custom/Unknown               194,038,393     97.10     26.06        99    -189     153
+
+Total                             20,479,655,089

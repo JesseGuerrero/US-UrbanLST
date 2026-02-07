@@ -1,0 +1,16 @@
+pytorch-lightning>=2.6.0
+earthformer>=0.2.1
+numpy>=2.0.2
+rasterio>=1.4.3
+geopandas>=1.0.1
+shapely>=2.0.7
+pyproj>=3.6.1
+pystac-client>=0.8.3
+planetary-computer>=1.0.0
+odc-stac>=0.3.11
+tqdm>=4.67.2
+wandb>=0.24.1
+scikit-learn>=1.6.1
+matplotlib>=3.9.4
+python-dateutil>=2.9.0
+pillow

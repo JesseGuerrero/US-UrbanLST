@@ -1,0 +1,901 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Heat Island Simulator</title>
+  <link rel="icon" type="image/x-icon" href="tree.png">
+  <link
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+          rel="stylesheet"
+  />
+  <style>
+    html,
+    body,
+    #viewDiv, #viewDiviFrame {
+      padding: 0;
+      margin: 0;
+      height: 98%;
+      width: 100%;
+      bottom: 0;
+      position: absolute;
+    }
+    #infoDiv {
+      position: absolute;
+      top: 6px;
+      left: 60px;
+    }
+    #paneDiv {
+      padding: 10px;
+      width: 270px;
+      background-color: rgba(255, 255, 255, 0.8);
+      position: absolute;
+      bottom: 105px;
+      right: 0;
+    }
+    .esri-attribution {
+      display: none !important;
+    }
+    .esri-time-slider__min,
+    .esri-time-slider__max,
+    .esri-time-slider__time-extent {
+      display: none !important;
+    }
+    .esri-time-slider__row {
+      justify-content: center !important;
+    }
+    .loading-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #8e8ea0;
+      font-size: 13px;
+    }
+    .loading-indicator .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(142,142,160,0.3);
+      border-top-color: #8e8ea0;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    /* Floating Button */
+    #chatAIButton {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 64px;
+      height: 64px;
+      background-color: #2d2d2d;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      font-size: 1.5em;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 1001;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+
+    #chatAIButton:hover {
+      border: 2px solid antiquewhite;
+    }
+
+    /* Overlay Background */
+    #overlayBackground {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    /* Chat Overlay */
+    .chat-overlay {
+      visibility: hidden; /* Initially hidden */
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60vw;
+      height: 70vh;
+      max-width: 90%;
+      max-height: 90%;
+      background: #1e1e1e;
+      color: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      z-index: 1002;
+      flex-direction: column;
+    }
+
+    /* Chat Header */
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background: #2a2a2a;
+      border-bottom: 1px solid #3a3a3a;
+      font-size: 1.2em;
+    }
+
+    .chat-header h2 {
+      margin: 0;
+      color: #ddd;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.2em;
+      cursor: pointer;
+    }
+
+    .close-btn:hover {
+      color: #e74c3c;
+    }
+
+    /* Fade-in Animation */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Sidebar Styles */
+    .sidebar {
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 300px;
+      background-color: white;
+      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+      transform: translateX(-100%); /* Hidden initially */
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 13px;
+      background-color: #f4f4f4;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .sidebar-header h3 {
+      margin: 0;
+    }
+
+    .sidebar-content {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-content li {
+      padding: 15px 20px;
+      border-bottom: 1px solid #f4f4f4;
+    }
+
+    .sidebar-content li a {
+      text-decoration: none;
+      color: black; /* Ensure text color contrasts with the white background */
+      font-size: 1em; /* Adjust font size for readability */
+    }
+
+    .sidebar-content li:hover {
+      background-color: #f0f0f0; /* Slightly darker for hover effect */
+    }
+
+    /* Show Sidebar */
+    .sidebar.open {
+      transform: translateX(0); /* Slide in */
+    }
+
+    calcite-icon[icon="compass-needle"] {
+      margin-left: -4px;
+    }
+
+
+  #expandableDiv {
+    position: fixed;
+    right: 0;
+    top: 50px;
+    width: 0;
+    height: calc(100% - 26px);
+    background-color: white;
+    /*box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);*/
+    transition: width 0.3s ease;
+    overflow: hidden;
+    z-index: 100;
+  }
+
+  #expandableDiv.open {
+    width: 20%;
+  }
+
+  #expandToggle {
+    position: fixed;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 60px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-right: none;
+    border-radius: 4px 0 0 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 101;
+    transition: right 0.3s ease;
+  }
+
+  #expandToggle.open {
+    right: 20%;
+  }
+
+  #expandToggle i {
+    transition: transform 0.3s ease;
+  }
+
+  #expandToggle.open i {
+    transform: rotate(180deg);
+  }
+
+  /* Chat Interface Styles */
+  #chatContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: #343541;
+  }
+
+  #chatMessages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .chat-message {
+    display: flex;
+    padding-top: 0px;
+    padding-right: 8px;
+    padding-bottom: 0px;
+    padding-left: 8px;
+  }
+
+  .chat-message.user {
+    justify-content: flex-end;
+  }
+
+  .chat-message.user .message-content {
+    background-color: #40414f;
+    padding: 12px 16px;
+    border-radius: 12px;
+  }
+
+  .chat-message.assistant {
+    background-color: transparent;
+  }
+
+  .message-content {
+    color: #ececf1;
+    font-size: 14px;
+    line-height: 1.5;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    max-width: 100%;
+    word-wrap: break-word;
+  }
+
+  #chatInputContainer {
+    padding: 16px;
+    background-color: #343541;
+    border-top: 1px solid #565869;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  #chatInput {
+    flex: 1;
+    background-color: #40414f;
+    border: 1px solid #565869;
+    border-radius: 8px;
+    padding: 12px;
+    color: #ececf1;
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    outline: none;
+  }
+
+  #chatInput:focus {
+    border-color: #8e8ea0;
+  }
+
+  #chatInput::placeholder {
+    color: #8e8ea0;
+  }
+
+  #chatSend {
+    background-color: #19c37d;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  #chatSend:hover {
+    background-color: #1a7f5f;
+  }
+
+  #chatSend:disabled {
+    background-color: #40414f;
+    cursor: not-allowed;
+  }
+  </style>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.26/esri/themes/light/main.css" />
+  <script src="https://js.arcgis.com/4.31/"></script>
+</head>
+<body>
+<div id="header" style="display: flex; align-items: center; vertical-align: middle; margin-top: -20px; padding-left: 15px; font-size: 1.1em;">
+  <button id="hamburgerMenu" style="border: none; background: none; font-size: 1.5em; margin-right: 10px; cursor: pointer;">
+    <i class="fas fa-bars"></i>
+  </button>
+  <span id="title">SATX 2024 - 3D City</span>
+</div>
+<div style="display: flex; padding-top:13px; overflow: hidden;">
+  <div id="sidebarMenu" class="sidebar" style="flex-shrink: 0; overflow: hidden; transition: width 0.3s ease;">
+    <ul class="sidebar-content" style="list-style: none; padding: 0; margin: 0;">
+      <li style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #f4f4f4;">
+        <a href="#option15" id="cityService" style="display: flex; align-items: center; text-decoration: none; color: black;">
+          <i class="fas fa-city" style="margin-right: 10px; color: black; font-size: 1em; width: 15px;"></i>3D City
+        </a>
+        <button id="closeSidebar" class="close-btn" style="border: none; background: none; font-size: 1em; cursor: pointer; color: black;">✖</button>
+      </li>
+    </ul>
+    <div class="sidebar-header" style="background-color: #f4f4f4; padding: 10px; border-bottom: 1px solid #ddd;">
+      <h3 style="color: black;">Services</h3> <!-- Ensure the header text is visible -->
+    </div>
+    <ul class="sidebar-content" style="list-style: none; padding: 0; margin: 0;">
+      <li style="display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #f4f4f4;">
+        <a href="#option2" style="text-decoration: none; color: black;"><i class="fas fa-home" style="margin-right: 10px; color: black;width: 15px;"></i>House Appraisals</a>
+      </li>
+      <li style="display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #f4f4f4;">
+        <a href="#option3" id="uhiService" style="text-decoration: none; color: black;"><i class="fas fa-temperature-high" style="margin-right: 10px; color: black;width: 15px;"></i>UHI Service</a>
+      </li>
+      <li style="display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #f4f4f4;">
+        <a href="#option4" style="text-decoration: none; color: black;"><i class="fas fa-water" style="margin-right: 10px; color: black;width: 15px;"></i>Flooding Service</a>
+      </li>
+
+      <li style="display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #f4f4f4;">
+        <a href="#option5" style="text-decoration: none; color: black;"><i class="fas fa-th" style="margin-right: 10px; color: black;width: 15px;"></i>Grid Service</a>
+      </li>
+    </ul>
+  </div>
+  <div id="viewDiv" style="flex-grow: 1; transition: margin-left 0.3s ease, width 0.3s ease; visibility: visible; z-index: 1;">
+  </div>
+  <button id="expandToggle">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    <div id="expandableDiv">
+      <div id="chatContainer">
+        <div id="chatMessages"></div>
+        <div id="chatInputContainer">
+          <input type="text" id="chatInput" placeholder="Send a message..." />
+          <button id="chatSend"><i class="fas fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<script>
+  var expandToggle = document.getElementById('expandToggle');
+  var expandableDiv = document.getElementById('expandableDiv');
+  var viewDiv = document.getElementById('viewDiv');
+  var hamburgerMenu = document.getElementById('hamburgerMenu');
+  var closeSidebar = document.getElementById('closeSidebar');
+  var sidebarMenu = document.getElementById('sidebarMenu');
+
+  const sidebarWidth = 300; // Sidebar width in pixels
+
+  function toggleSidebar() {
+    expandToggle.classList.toggle('open');
+    expandableDiv.classList.toggle('open');
+    updateViewDivSize();
+  }
+
+  toggleSidebar();
+  expandToggle.addEventListener('click', () => {
+    toggleSidebar();
+  });
+
+  // Chat functionality
+  const chatInput = document.getElementById('chatInput');
+  const chatSend = document.getElementById('chatSend');
+  const chatMessages = document.getElementById('chatMessages');
+
+  function addMessage(content, type) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${type}`;
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    contentDiv.textContent = content;
+    messageDiv.appendChild(contentDiv);
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  async function streamMessage(message, messageElement, imageData) {
+    if (!chatConfig.apiUrl || !chatConfig.apiToken) {
+      messageElement.textContent = 'Error: Please configure your API settings first.';
+      return;
+    }
+
+    try {
+      const messages = [{ role: 'user', content: message }];
+      if (imageData) {
+        messages[0].content = [
+          { type: 'text', text: message },
+          { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageData}` } }
+        ];
+      }
+
+      const response = await fetch(`${chatConfig.apiUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${chatConfig.apiToken}`
+        },
+        body: JSON.stringify({
+          model: chatConfig.model,
+          messages: messages,
+          stream: true
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+            try {
+              const data = JSON.parse(line.slice(6));
+              const token = data.choices?.[0]?.delta?.content || '';
+              fullText += token;
+              messageElement.textContent = fullText;
+            } catch (e) { /* skip malformed chunks */ }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      messageElement.textContent = `Error: ${error.message}`;
+    }
+  }
+
+  async function sendMessage() {
+    const message = chatInput.value.trim();
+    if (!message) return;
+    let imageData = null;
+    let systemPrompt = "SYSTEM: You are a chatbot in a digital twin of San Antonio. Keep responses about 1 paragraph 4-5 sentences. Always recall Surface temperature is 20-30 degress hotter than canopy temperature.";
+    const fullPrompt = systemPrompt + " USER: " + message;
+
+    addMessage(message, 'user');
+    chatInput.value = '';
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'chat-message assistant';
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    messageDiv.appendChild(contentDiv);
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    await streamMessage(fullPrompt, contentDiv, imageData);
+  }
+
+  chatSend.addEventListener('click', sendMessage);
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+
+  // Chatbot configuration stored in sessionStorage for persistence
+  const chatConfig = {
+    get apiUrl() { return sessionStorage.getItem('openai_api_url') || ''; },
+    set apiUrl(val) { sessionStorage.setItem('openai_api_url', val); },
+    get apiToken() { return sessionStorage.getItem('openai_api_token') || ''; },
+    set apiToken(val) { sessionStorage.setItem('openai_api_token', val); },
+    get model() { return sessionStorage.getItem('openai_model') || ''; },
+    set model(val) { sessionStorage.setItem('openai_model', val); }
+  };
+
+  function initChatBot() {
+    if (chatConfig.apiUrl && chatConfig.apiToken && chatConfig.model) return;
+
+    const setupDiv = document.createElement('div');
+    setupDiv.className = 'chat-message assistant';
+    setupDiv.innerHTML = `
+      <div class="message-content">
+        <p>Welcome! Please configure your OpenAI backend:</p>
+        <div style="margin-top: 10px;">
+          <input type="text" id="apiUrlInput" placeholder="OpenAI API URL (e.g., http://localhost:8000/v1)"
+            style="width: 100%; padding: 8px; margin-bottom: 8px; background: #40414f; border: 1px solid #565869; border-radius: 4px; color: #ececf1;">
+          <input type="password" id="apiTokenInput" placeholder="API Token"
+            style="width: 100%; padding: 8px; margin-bottom: 8px; background: #40414f; border: 1px solid #565869; border-radius: 4px; color: #ececf1;">
+          <input type="text" id="modelInput" placeholder="Model Name (e.g., gpt-4, llama-3)"
+            style="width: 100%; padding: 8px; margin-bottom: 8px; background: #40414f; border: 1px solid #565869; border-radius: 4px; color: #ececf1;">
+          <button id="saveConfigBtn" style="padding: 8px 16px; background: #19c37d; border: none; border-radius: 4px; color: white; cursor: pointer;">Save</button>
+        </div>
+      </div>
+    `;
+    chatMessages.appendChild(setupDiv);
+
+    document.getElementById('saveConfigBtn').addEventListener('click', () => {
+      const url = document.getElementById('apiUrlInput').value.trim();
+      const token = document.getElementById('apiTokenInput').value.trim();
+      const model = document.getElementById('modelInput').value.trim();
+      if (url && token && model) {
+        chatConfig.apiUrl = url;
+        chatConfig.apiToken = token;
+        chatConfig.model = model;
+        setupDiv.remove();
+        addMessage('Configuration saved! You can now start chatting.', 'assistant');
+      }
+    });
+  }
+
+  initChatBot();
+
+  function updateViewDivSize() {
+    const chatOpen = expandableDiv.classList.contains('open');
+    const menuOpen = sidebarMenu.classList.contains('open');
+    const base = chatOpen ? '80%' : '100%';
+    const margin = menuOpen ? sidebarWidth : 0;
+    viewDiv.style.marginLeft = `${margin}px`;
+    viewDiv.style.width = margin > 0 ? `calc(${base} - ${margin}px)` : base;
+  }
+
+  // Function to toggle the sidebar
+  hamburgerMenu.addEventListener('click', () => {
+    sidebarMenu.classList.toggle('open');
+    updateViewDivSize();
+  });
+
+  // Function to close the sidebar
+  closeSidebar.addEventListener('click', () => {
+    sidebarMenu.classList.remove('open');
+    updateViewDivSize();
+  });
+
+  window.app = {
+    inContextData: {}
+  }
+  require([
+    "esri/Map",
+    "esri/views/SceneView",
+    "esri/layers/FeatureLayer",
+    "esri/layers/GraphicsLayer",
+    "esri/widgets/TimeSlider",
+    "esri/layers/SceneLayer",
+    "esri/layers/WebTileLayer"
+  ], function(Map, SceneView, FeatureLayer, GraphicsLayer, TimeSlider, SceneLayer, WebTileLayer) {
+    async function main() {
+      const map = new Map({
+        basemap: "osm",
+        ground: "world-elevation"
+      });
+      const view = new SceneView({
+        container: "viewDiv",
+        map: map,
+        center: [-98.4936, 29.426],
+        zoom: 18,
+        camera: {
+          position: {
+            x: -98.4830,
+            y: 29.4078,
+            z: 800
+          },
+          tilt: 65
+        }
+      });
+
+      const treeRenderer = {
+        type: "unique-value", // Use Unique Value Renderer
+        field: "Name", // The field to symbolize based on unique values
+        defaultSymbol: {
+          type: "web-style", // Default symbol if the TREE_TYPE doesn't match any listed
+          styleName: "EsriLowPolyVegetationStyle",
+          name: "Populus"
+        },
+        uniqueValueInfos: [
+          {
+            value: "Common Whitebeam", // Unique value 1
+            symbol: {
+              type: "web-style",
+              styleName: "EsriLowPolyVegetationStyle",
+              name: "Sorbus"
+            }
+          },
+          {
+            value: "European Beech", // Unique value 2
+            symbol: {
+              type: "web-style",
+              styleName: "EsriLowPolyVegetationStyle",
+              name: "Fagus"
+            }
+          },
+          {
+            value: "Northern Red Oak", // Unique value 3
+            symbol: {
+              type: "web-style",
+              styleName: "EsriLowPolyVegetationStyle",
+              name: "Quercus Rubra"
+            }
+          },
+          {
+            value: "Norway Maple", // Unique value 4
+            symbol: {
+              type: "web-style",
+              styleName: "EsriLowPolyVegetationStyle",
+              name: "Acer"
+            }
+          },
+          {
+            value: "Umbrella Acacia", // Unique value 5
+            symbol: {
+              type: "web-style",
+              styleName: "EsriLowPolyVegetationStyle",
+              name: "Acacia"
+            }
+          }
+        ],
+        visualVariables: [
+          {
+            type: "size",
+            axis: "height",
+            field: "HEIGHT",
+            valueUnit: "meters"
+          },
+          {
+            type: "size",
+            axis: "width", // New visual variable for width
+            field: "Width", // The field that defines the width
+            valueUnit: "meters"
+          }
+        ]
+      };
+
+      const buildingsLayer = new SceneLayer({
+        portalItem: {
+          id: "5f3bfa18600a41979e989f357f4bcc76"
+        },
+        elevationInfo: {
+          mode: "absolute-height",
+          offset: 0
+        }
+      });
+      const buildingsWestLayer = new SceneLayer({
+        portalItem: {
+          id: "93bb781426864219981e94aab54f6afc"
+        },
+        elevationInfo: {
+          mode: "absolute-height",
+          offset: 0
+        }
+      });
+      const threeDBuildingMesh = new SceneLayer({
+        portalItem: {
+          id: "a553a5d36795411a905844082ddcb70f"
+        },
+        elevationInfo: {
+          mode: "absolute-height",
+          offset: 0
+        }
+      });
+
+      const immutableTreesLayer = new FeatureLayer({
+        portalItem: {
+          id: "18039c2ee1b443f8ad528d111b639428"
+        },
+        renderer: treeRenderer
+      });
+      view.map.add(buildingsLayer);
+      view.map.add(buildingsWestLayer);
+      view.map.add(threeDBuildingMesh);
+      view.map.add(immutableTreesLayer);
+
+      // --- LST monthly tile layer + time slider ---
+      let lstTileLayer = null;
+      let timeSlider = null;
+      let currentMonth = null;
+      let uhiVisible = true;
+      let availableMonths = [];
+      const tileBase = new URL("./", window.location.href).href;
+
+      function createTileLayer(month) {
+        return new WebTileLayer({
+          urlTemplate: `${tileBase}tiles/${month}/{level}/{col}/{row}.png`,
+          opacity: 0.5,
+          visible: true,
+          minScale: 500000,
+          maxScale: 2000,
+          title: "LST " + month
+        });
+      }
+
+      function switchMonth(month) {
+        if (month === currentMonth && lstTileLayer) return;
+        if (lstTileLayer) view.map.remove(lstTileLayer);
+        currentMonth = month;
+        lstTileLayer = createTileLayer(month);
+        lstTileLayer.visible = uhiVisible;
+        view.map.add(lstTileLayer);
+      }
+
+      // Fetch available months and set up time slider
+      fetch("months.json").then(r => r.json()).then(data => {
+        availableMonths = data.months;
+        // Date stops: 1st of each month + prediction at end
+        const stops = availableMonths.map(m => {
+          const [y, mo] = m.split("-");
+          return new Date(parseInt(y), parseInt(mo) - 1, 1);
+        });
+        // Add prediction stop one month after the last
+        const lastDate = stops[stops.length - 1];
+        const predDate = new Date(lastDate.getFullYear(), lastDate.getMonth() + 1, 1);
+        stops.push(predDate);
+
+        // Map stop index to month key (last index = "prediction")
+        const stopToMonth = [...availableMonths, "prediction"];
+
+        // Start with prediction
+        switchMonth("prediction");
+
+        timeSlider = new TimeSlider({
+          container: "timeSlider",
+          view: view,
+          mode: "instant",
+          fullTimeExtent: { start: stops[0], end: stops[stops.length - 1] },
+          stops: { dates: stops },
+          values: [predDate],
+          layout: "auto",
+          timeVisible: false,
+          loop: true,
+          playRate: 2000,
+          visible: true
+        });
+        view.ui.add(timeSlider, "bottom-right");
+
+        // Add ★ under the last (prediction) tick label
+        function addPredictionStar() {
+          const el = timeSlider.container;
+          let labels = el.querySelectorAll(".esri-slider__tick-label");
+          if (!labels.length) labels = el.querySelectorAll(".esri-time-slider__tick-label");
+          if (!labels.length) {
+            labels = el.querySelectorAll("span, div");
+            const predYear = predDate.getFullYear();
+            const predMonth = predDate.toLocaleDateString("default", { month: "short" });
+            for (const lbl of labels) {
+              if (lbl.children.length === 0 &&
+                  lbl.textContent.includes(predMonth) &&
+                  lbl.textContent.includes(String(predYear))) {
+                lbl.textContent = lbl.textContent + " ★";
+                return;
+              }
+            }
+            return;
+          }
+          const last = labels[labels.length - 1];
+          last.textContent = last.textContent + " ★";
+        }
+        setTimeout(addPredictionStar, 1500);
+
+        timeSlider.watch("timeExtent", (te) => {
+          if (!te) return;
+          const d = te.end || te.start;
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const key = `${y}-${m}`;
+          switchMonth(availableMonths.includes(key) ? key : "prediction");
+        });
+      }).catch(err => console.error("Failed to load /months:", err));
+
+      // Toggle UHI overlay + slider
+      document.getElementById("uhiService").addEventListener("click", function(e) {
+        e.preventDefault();
+        uhiVisible = !uhiVisible;
+        if (lstTileLayer) lstTileLayer.visible = uhiVisible;
+        if (timeSlider) timeSlider.visible = uhiVisible;
+      });
+
+      // Temperature grid cache and lookup
+      const tempGridCache = {};
+      async function lookupTemperature(month, lon, lat) {
+        if (!tempGridCache[month]) {
+          const r = await fetch(`temperature/${month}.json`);
+          if (!r.ok) return null;
+          tempGridCache[month] = await r.json();
+        }
+        const g = tempGridCache[month];
+        // lon/lat -> EPSG:3857
+        const mx = lon * 20037508.342789244 / 180;
+        const my = Math.log(Math.tan((90 + lat) * Math.PI / 360)) / Math.PI * 20037508.342789244;
+        const col = Math.floor((mx - g.bbox_3857[0]) / g.cell_size);
+        const row = Math.floor((g.bbox_3857[3] - my) / g.cell_size);
+        if (row < 0 || row >= g.rows || col < 0 || col >= g.cols) return null;
+        return g.data[row][col];
+      }
+
+      // Double-click: query temperature from local JSON grid
+      view.on("double-click", (event) => {
+        event.stopPropagation();
+        const latitude = event.mapPoint.latitude;
+        const longitude = event.mapPoint.longitude;
+        const currentHeading = view.camera.heading;
+        const month = currentMonth || "prediction";
+        const monthLabel = month === "prediction" ? "Prediction" :
+          (() => { const [y, mo] = month.split("-"); return new Date(parseInt(y), parseInt(mo) - 1, 1).toLocaleDateString("default", { month: "long", year: "numeric" }); })();
+
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'chat-message assistant';
+        loadingDiv.innerHTML = '<div class="message-content"><div class="loading-indicator"><div class="spinner"></div>Looking up Surface Temperature</div></div>';
+        chatMessages.appendChild(loadingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        lookupTemperature(month, longitude, latitude).then(async (temperature) => {
+          if (temperature == null) {
+            loadingDiv.innerHTML = '<div class="message-content" style="color:#e74c3c;font-size:13px;">No temperature data at this location.</div>';
+            return;
+          }
+          loadingDiv.remove();
+          window.app.inContextData = {temperature, lon: longitude, lat: latitude, heading: currentHeading, month: monthLabel};
+          const locationMsg = `Selected location: ${latitude.toFixed(5)}, ${longitude.toFixed(5)} | Surface Temperature: ${temperature}°F | Heading: ${currentHeading.toFixed(0)}° | Date: ${monthLabel}`;
+          chatInput.value = "Tell me the temperature around... \n" + locationMsg;
+          await sendMessage();
+        });
+      });
+    };
+    main();
+  });
+</script>
+</body>
+</html>

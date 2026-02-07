@@ -1,0 +1,27 @@
+name: earthformer
+channels:
+  - conda-forge
+  - pytorch
+  - defaults
+dependencies:
+  - python=3.11
+  - rasterio
+  - geopandas
+  - shapely
+  - pyproj
+  - numpy
+  - tqdm
+  - scikit-learn
+  - matplotlib
+  - python-dateutil
+  - pytorch
+  - pytorch-cuda=12.4
+  - pip
+  - pip:
+      - earthformer
+      - pytorch-lightning
+      - pystac-client
+      - planetary-computer
+      - odc-stac
+      - wandb
+      - pillow
