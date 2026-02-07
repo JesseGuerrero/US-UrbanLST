@@ -46,35 +46,40 @@ for c in present_classes:
     var = np.sum(counts * (temps - mean) ** 2) / total
     stats[c] = {"mean": mean, "std": np.sqrt(var), "total": int(total)}
 
-# Build full arrays for plotting (fill gaps with 0)
-TEMP_MIN, TEMP_MAX = -189, 211
-all_temps = np.arange(TEMP_MIN, TEMP_MAX + 1)
+# Build 2F-binned arrays for plotting
+BIN_WIDTH = 2
+bin_edges = np.arange(0, 152, BIN_WIDTH)
+bin_centers = bin_edges[:-1] + BIN_WIDTH / 2
 histograms = {}
 for c in present_classes:
-    hist = np.zeros(len(all_temps))
-    temp_to_idx = {t: i for i, t in enumerate(all_temps)}
+    binned = np.zeros(len(bin_centers))
+    total = 0
     for t, cnt in zip(data[c]["temps"], data[c]["counts"]):
-        if t in temp_to_idx:
-            hist[temp_to_idx[t]] = cnt
-    total = hist.sum()
-    histograms[c] = (hist / total) * 100  # convert to percentage
+        total += cnt
+        idx = int((t - bin_edges[0]) // BIN_WIDTH)
+        if 0 <= idx < len(binned):
+            binned[idx] += cnt
+    histograms[c] = (binned / total) * 100  # convert to percentage
 
 # Plot
 ncols = 4
 nrows = (len(present_classes) + ncols - 1) // ncols
-fig, axes = plt.subplots(nrows, ncols, figsize=(16, 3.5 * nrows), sharex=True, sharey=False)
+fig, axes = plt.subplots(nrows, ncols, figsize=(16, 3.5 * nrows), sharey=True)
 axes = axes.flatten()
 
 pct_fmt = FuncFormatter(lambda x, _: f"{x:.1f}%")
+x_ticks = np.arange(0, 151, 25)
 
 for i, c in enumerate(present_classes):
     ax = axes[i]
     pct = histograms[c]
     s = stats[c]
-    ax.bar(all_temps, pct, width=1, color='steelblue', edgecolor='none')
+    ax.bar(bin_centers, pct, width=BIN_WIDTH, color='steelblue', edgecolor='none')
     ax.set_title(f"LCZ {c}: {LCZ_LABELS.get(c, '?')}", fontsize=10)
-    ax.set_xlim(0, 180)
-    ax.set_ylim(0, ax.get_ylim()[1])
+    ax.set_xlim(0, 150)
+    ax.set_ylim(0, 2.0)
+    ax.set_xticks(x_ticks)
+    ax.set_xticklabels([f"{int(t)}" for t in x_ticks], fontsize=8)
     ax.yaxis.set_major_formatter(pct_fmt)
     ax.axvline(s['mean'], color='red', linestyle='--', linewidth=0.8, label=f"Mean: {s['mean']:.1f}F")
     ax.legend(fontsize=7, loc='upper left')
