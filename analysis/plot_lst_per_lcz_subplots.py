@@ -83,10 +83,10 @@ for i, c in enumerate(present_classes):
     ax.set_xticklabels([f"{int(t)}" for t in x_ticks], fontsize=8)
     ax.yaxis.set_major_formatter(pct_fmt)
     ax.axvline(s['mean'], color='red', linestyle='--', linewidth=0.8, label=f"Mean: {s['mean']:.1f}F")
-    ax.legend(fontsize=7, loc='upper left')
+    ax.legend(fontsize=11, loc='upper left')
     ax.grid(axis='y', alpha=0.3)
     info = f"n={s['total']:,}\nstd={s['std']:.1f}F"
-    ax.text(0.97, 0.95, info, transform=ax.transAxes, fontsize=7,
+    ax.text(0.97, 0.95, info, transform=ax.transAxes, fontsize=11,
             verticalalignment='top', horizontalalignment='right',
             bbox=dict(boxstyle='round,pad=0.3', facecolor='wheat', alpha=0.5))
 
