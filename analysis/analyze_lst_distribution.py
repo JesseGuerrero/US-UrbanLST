@@ -10,7 +10,7 @@ from pathlib import Path
 
 # Configuration
 LST_DIR = Path("/workspace/storage/lst-earthformer/Data/ML/Cities_Tiles")
-OUTPUT_DIR = Path("/workspace/storage/lst-earthformer")
+OUTPUT_DIR = Path(__file__).resolve().parent / "out"
 N_JOBS = 124
 TEMP_MIN, TEMP_MAX = -189, 211
 BINS = range(TEMP_MIN, TEMP_MAX + 2)

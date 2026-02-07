@@ -10,7 +10,7 @@ from pathlib import Path
 
 # Configuration
 LCZ_FILE = Path("/workspace/storage/lst-earthformer/CONUS_LCZ.tif")
-OUTPUT_DIR = Path("/workspace/storage/lst-earthformer")
+OUTPUT_DIR = Path(__file__).resolve().parent / "out"
 N_JOBS = 124
 MAX_CLASS = 19
 

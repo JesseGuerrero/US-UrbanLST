@@ -3,6 +3,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
 from matplotlib.ticker import FixedLocator, FuncFormatter
 from scipy.interpolate import PchipInterpolator, make_interp_spline
 
@@ -30,7 +31,9 @@ def human_format(x, pos):
 # ── Parse LST stats ──────────────────────────────────────────────
 lst_temps, lst_counts = [], []
 in_data = False
-with open('/workspace/storage/lst-earthformer/lst_temperature_stats.txt') as f:
+OUTPUT_DIR = Path(__file__).resolve().parent / "out"
+
+with open(OUTPUT_DIR / 'lst_temperature_stats.txt') as f:
     for line in f:
         if line.startswith('Temp'):
             in_data = True
@@ -60,7 +63,7 @@ for i, (lo, hi) in enumerate(zip(bin_edges[:-1], bin_edges[1:])):
 # ── Parse LCZ stats ─────────────────────────────────────────────
 lcz_classes, lcz_counts = [], []
 in_data = False
-with open('/workspace/storage/lst-earthformer/lcz_class_stats.txt') as f:
+with open(OUTPUT_DIR / 'lcz_class_stats.txt') as f:
     for line in f:
         if line.startswith('Rank'):
             in_data = True
@@ -146,6 +149,6 @@ ax2.text(0.97, 0.78, 'Temperature Distribution', transform=ax2.transAxes, fontsi
          color='red', fontweight='bold', verticalalignment='top', horizontalalignment='right')
 
 
-plt.savefig('/workspace/storage/lst-earthformer/combined_distribution.png', dpi=300, facecolor='white')
+plt.savefig(OUTPUT_DIR / 'combined_distribution.png', dpi=300, facecolor='white')
 plt.close()
 print('Saved combined_distribution.png')

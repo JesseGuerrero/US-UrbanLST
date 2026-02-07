@@ -15,7 +15,7 @@ import json
 # Configuration
 LST_DIR = Path("/workspace/storage/lst-earthformer/Data/ML/Cities_Tiles")
 LCZ_FILE = Path("/workspace/storage/lst-earthformer/CONUS_LCZ.tif")
-OUTPUT_DIR = Path("/workspace/storage/lst-earthformer")
+OUTPUT_DIR = Path(__file__).resolve().parent / "out"
 N_JOBS = 64
 TEMP_MIN, TEMP_MAX = -189, 211
 NUM_BINS = TEMP_MAX - TEMP_MIN + 1
@@ -246,6 +246,23 @@ def main():
         f.write(f"{'Total':<33}{total_all:>15,}\n")
 
     print(f"Saved: lst_per_lcz_stats.txt")
+
+    # --- Save full histogram data ---
+    print("Writing histogram data...")
+    with open(OUTPUT_DIR / "lst_per_lcz_histograms.txt", "w") as f:
+        f.write("LST Per-LCZ-Class Histogram Data\n")
+        f.write(f"Temperature range: {TEMP_MIN} to {TEMP_MAX} F\n")
+        f.write(f"LCZ classes: {present_classes}\n\n")
+        for c in present_classes:
+            hist = total_hists[c]
+            total = hist.sum()
+            f.write(f"LCZ_CLASS {c} ({LCZ_LABELS.get(c, 'Unknown')}) total_pixels={int(total)}\n")
+            f.write("Temp(F)\tCount\tProbability\n")
+            for i, t in enumerate(temperatures):
+                if hist[i] > 0:
+                    f.write(f"{t}\t{int(hist[i])}\t{hist[i]/total:.10f}\n")
+            f.write("\n")
+    print("Saved: lst_per_lcz_histograms.txt")
     print("Done!")
 
 
